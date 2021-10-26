@@ -6,8 +6,6 @@ server_timezone="Europe/London"
 server_nameserver1="9.9.9.9"
 server_nameserver2="1.1.1.1"
 server_swapfile_size="4G"
-new_user_account_name=username_here
-new_user_account_pass=pass_here
 
 # Set hostname
 hostnamectl set-hostname $server_hostname
