@@ -110,9 +110,20 @@ then
 fi
 
 # Correct permissions and add make the swap
-chmod 600 /swapfile
-mkswap /swapfile
-swapon /swapfile
+if [ $(swapon -s |wc -l) != 0 ]
+then
+  echo "You already have SWAP file in use. Nothing to do."
+else
+  echo "Correcting SWAP file permissions..."
+  chmod 600 /swapfile
+  echo "Done."
+  echo "Making the SWAP..."
+  mkswap /swapfile > /dev/null 2>&1
+  echo "Done."
+  echo "Activating the SWAP..."
+  swapon /swapfile
+  echo "Done."
+fi
 
 # Make sure SWAP is loaded on boot
 echo ""
@@ -127,3 +138,12 @@ else
   echo ""
   echo "Done."
 fi
+
+# Optimize SWAP usage
+echo "Optimize SWAP usage..."
+cp /etc/sysctl.conf /etc/sysctl.conf.bak
+echo "# Optimize SWAP usage" | tee -a /etc/sysctl.conf
+echo 'vm.swappiness=10' | tee -a /etc/sysctl.conf
+echo 'vm.vfs_cache_pressure = 50' | tee -a /etc/sysctl.conf
+echo ""
+echo "Done."
