@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Check if you are root
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root. Non-root users cannot execute this script."
+  exit
+fi
+
 # SET SOME VARIABLES
 OS_NAME=$(egrep '^(NAME)=' /etc/os-release |awk -F '"' '{print $2}'|awk -F ' ' '{print $1}')
 OS_VERSION=$(egrep '^(VERSION)=' /etc/os-release |awk -F '"' '{print $2}'|awk -F ' ' '{print $1}'|awk -F '.' '{print $1}')
