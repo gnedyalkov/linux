@@ -22,6 +22,36 @@ echo ""
 echo "Let's proceed setuping your server."
 echo ""
 
+# Create new sudo user
+echo "Creating new user with sudo privileges..."
+echo ""
+read -p "Choose name for the new user account: " NEW_USER_SUDO
+#read -p "Choose password for the new user: " NEW_USER_SUDO_PASS
+egrep "^$NEW_USER_SUDO" /etc/passwd > /dev/null 2>&1
+if [ $? -eq 0 ]
+then
+  echo ""
+  echo "$NEW_USER_SUDO already exists!"
+  exit 1
+elif [ "$OS_NAME" = "Ubuntu"  -o  "$OS_NAME" = "Debian" ]
+then
+  echo ""
+  useradd -m -s /bin/bash "$NEW_USER_SUDO"
+  passwd $NEW_USER_SUDO
+  SUDO_GROUP=sudo
+  usermod -aG $SUDO_GROUP $NEW_USER_SUDO
+  echo "User $NEW_USER_SUDO has been created with the provided password."
+ elif [ "$OS_NAME" = "CentOS"  -o  "$OS_NAME" = "Rocky" ]
+ then
+   echo ""
+   useradd -m -s /bin/bash "$NEW_USER_SUDO"
+   #echo "$NEW_USER_SUDO_PASS" | passwd --stdin "$NEW_USER_SUDO"
+   passwd $NEW_USER_SUDO
+   SUDO_GROUP=wheel
+   usermod -aG $SUDO_GROUP $NEW_USER_SUDO
+   echo "User $NEW_USER_SUDO has been created with the provided password."
+fi
+
 # Set server's timezone
 read -p "Choose your Time Zone (e.g. Europe/London): " SERVER_TIMEZONE
 case "$SERVER_TIMEZONE" in
@@ -36,7 +66,7 @@ case "$SERVER_TIMEZONE" in
 esac
 
 # Set server's hostname
-read -p "Choose your hostname in the following format - server.hostname.com: " SERVER_HOSTNAME
+read -p "Choose your hostname using the following format - server.hostname.com: " SERVER_HOSTNAME
 case "$SERVER_HOSTNAME" in
   [a-z]*.*[a-z]*.*[a-z])
   cp /etc/hosts /etc/hosts.bak
@@ -54,7 +84,7 @@ case "$SERVER_HOSTNAME" in
 esac
 
 # Update the system
-echo "Updating your $OS_NAME server..."
+echo "Updating your $OS_NAME $OS_VERSION server..."
 echo ""
 if [ "$OS_NAME" = "Ubuntu"  -o  "$OS_NAME" = "Debian" ]
 then
@@ -79,6 +109,7 @@ elif [ "$OS_NAME" = "CentOS" ] && [ "$OS_VERSION" == "7" ]
 then
   # echo "Your system is $OS_NAME. Your package manager is YUM."
   yum update -yq
+  yum install -yq wget vim net-tools dmidecode
   yum autoremove -yq
   echo ""
   echo "Update completed."
@@ -105,7 +136,7 @@ then
   echo "Your RAM is $TOTAL_PHSYSICAL_RAM GB. Your SWAP should be = RAM + 2GB = $SWAP_SIZE GB."
   echo ""
   SWAP_SIZE_MB=$((${SWAP_SIZE}*1024))
-  dd if=/dev/zero of=/swapfile bs=1M count=$SWAP_SIZE_MB
+  dd if=/dev/zero of=/swapfile bs=1M count=$SWAP_SIZE_MB > /dev/null 2>&1
   echo ""
 fi
 
